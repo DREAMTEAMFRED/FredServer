@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 using CamTheGeek.GpioDotNet;
 using ManagedBass;
@@ -8,16 +11,21 @@ using ManagedBass;
 namespace FredServer
 {
     class Program
-    {        
+    {
+        private List<string> IPs = new List<string>();
+
         public static async Task Main()
         {
             TcpListener server = null;
-            
+            GpioPin light = new GpioPin(21, Direction.Out); // initalize pin 21 for light
+            Bass.Init(); // initalize sound card
+
             try
             {
                 // Set the TcpListener on port 13000.
                 Int32 port = 13000;
-                IPAddress localAddr = IPAddress.Parse("192.168.0.108");
+                string localIP = GetIpAddress();
+                IPAddress localAddr = IPAddress.Parse(localIP);
 
                 server = new TcpListener(localAddr, port);
                 server.Start();
@@ -53,8 +61,7 @@ namespace FredServer
                         switch (cmd[0])
                         {
                             case "light":
-                                {
-                                    GpioPin light = new GpioPin(21, Direction.Out);
+                                {                                    
                                     if (cmd[1] == "on")
                                     {
                                         light.Value = PinValue.High;
@@ -63,16 +70,15 @@ namespace FredServer
                                     if (cmd[1] == "off")
                                     {
                                         light.Value = PinValue.Low;
-                                        Console.WriteLine("Light Off");
+                                        Console.WriteLine("Light Off");                                                                                                                        
                                     }
                                     break;
                                 }
                             case "TTS":
                                 {
                                     await TTS.Speak(cmd[1]);
-                                    Console.WriteLine("FRED says " + cmd[1]);                                    
-                                    FredSays(); 
-                                    Console.ReadLine();
+                                    Console.WriteLine("FRED says " + cmd[1]);
+                                    FredSays();                                                                         
                                     break;
                                 }
                         }                       
@@ -103,30 +109,27 @@ namespace FredServer
         } // main   
 
         public static void FredSays()
-        {            
-            // Init BASS using the default output device
-            if (Bass.Init())
-            {
-                // Create a stream from a file
-                var stream = Bass.CreateStream("fredSays.wav");
+        {                      
+            var stream = Bass.CreateStream("fredSays.wav", 0, 0, BassFlags.AutoFree);
+                
+            if (stream != 0)
+                Bass.ChannelPlay(stream); // Play the stream
 
-                if (stream != 0)
-                    Bass.ChannelPlay(stream); // Play the stream
-
-                // Error creating the stream
-                else Console.WriteLine("Error: {0}!", Bass.LastError);
-
-                // Wait till user presses a key
-                Console.WriteLine("Press any key to exit");
-                Console.ReadKey();
-
-                // Free the stream
-                Bass.StreamFree(stream);
-
-                // Free current device.
-                Bass.Free();
-            }
-            
+            // Error creating the stream
+            else Console.WriteLine("Error: {0}!", Bass.LastError);                            
         }
+
+        public static string GetIpAddress()
+        {
+            string localIP;
+            using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, 0))
+            {
+                socket.Connect("8.8.8.8", 65530);
+                IPEndPoint endPoint = socket.LocalEndPoint as IPEndPoint;
+                localIP = endPoint.Address.ToString();
+            }
+            return localIP;
+        }
+
     }
 }

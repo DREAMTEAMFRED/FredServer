@@ -30,7 +30,7 @@ namespace FredServer
             string host = "https://eastus.tts.speech.microsoft.com/cognitiveservices/v1";
 
             string body = @"<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='en-US'>
-              <voice name='Microsoft Server Speech Text to Speech Voice (en-US, ZiraRUS)'>" +
+              <voice name='Microsoft Server Speech Text to Speech Voice (en-US, RichardRUS)'>" +
               text + "</voice></speak>";
 
             using (var client = new HttpClient())
