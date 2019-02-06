@@ -2,12 +2,13 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
     <LangVersion>7.1</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ManagedBass" Version="2.0.4" />    
+    <PackageReference Include="ManagedBass" Version="2.0.4" />
+    <PackageReference Include="System.Json" Version="4.5.0" />    
   </ItemGroup>
 
 </Project>

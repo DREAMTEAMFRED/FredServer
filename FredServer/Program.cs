@@ -43,8 +43,7 @@ namespace FredServer
                     Console.WriteLine("Connected!");
 
                     data = null;
-
-                    // Get a stream object for reading and writing
+                    
                     NetworkStream stream = client.GetStream();
 
                     int i;
@@ -79,6 +78,20 @@ namespace FredServer
                                     await TTS.Speak(cmd[1]);
                                     Console.WriteLine("FRED says " + cmd[1]);
                                     FredSays();                                                                         
+                                    break;
+                                }
+                            case "vision":
+                                {
+                                    await FredVision.GetVision("describe");
+                                    await TTS.Speak(FredVision.FredSees());
+                                    Console.WriteLine("FRED sees " + FredVision.FredSees());
+                                    FredSays();                                    
+                                    break;
+                                }
+                            case "auto":
+                                {
+                                    
+
                                     break;
                                 }
                         }                       
