@@ -4,6 +4,7 @@ using System.Text;
 using System.Json;
 using System.IO;
 using System.Net;
+using System.Threading;
 
 namespace FredServer
 {
@@ -11,15 +12,19 @@ namespace FredServer
     {
         private static string fredHears = "";
 
-        public static void Hear()
+        public static string Hears()
         {
+            RecAudio.Record().Wait();
+            Thread.Sleep(3000);
+            RecAudio.StopRecording().Wait();
+
             string requestUri = "https://eastus.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1?language=en-US";
             string contentType = @"audio/wav; codec=""audio/pcm""; samplerate=16000";
 
             /*
              * Input your own audio file or use read from a microphone stream directly.
              */
-            string audioFile = @"fredSays.wav";
+            string audioFile = @"record.wav";
             string responseString;
             FileStream fs = null;
 
@@ -61,13 +66,13 @@ namespace FredServer
                         {
                             responseString = sr.ReadToEnd();
                         }
-                    }
-
-                    JsonObject jsonDoc = (JsonObject)JsonValue.Parse(responseString);
-                    jsonDoc.TryGetValue("DisplayText", out JsonValue text);
-                    fredHears = text.ToString();
-                    fredHears = fredHears.Substring(1, fredHears.Length - 2);
+                    }                                        
                 }
+
+                JsonObject jsonDoc = (JsonObject)JsonValue.Parse(responseString);
+                jsonDoc.TryGetValue("DisplayText", out JsonValue text);
+                fredHears = text.ToString();
+                fredHears = fredHears.Substring(1, fredHears.Length - 2);
             }
             catch (Exception ex)
             {
@@ -75,6 +80,8 @@ namespace FredServer
                 Console.WriteLine(ex.Message);
                 Console.ReadLine();
             }
+
+            return fredHears;
         }// Hear
 
         public static string FredHears()

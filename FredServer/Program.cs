@@ -90,7 +90,7 @@ namespace FredServer
                                 }
                             case "auto":
                                 {
-                                    
+                                    await FredQnA.AskFred();
 
                                     break;
                                 }
