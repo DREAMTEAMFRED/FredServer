@@ -5,6 +5,7 @@ using System.Json;
 using System.IO;
 using System.Net;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace FredServer
 {
@@ -12,11 +13,11 @@ namespace FredServer
     {
         private static string fredHears = "";
 
-        public static string Hears()
+        public static async Task Hears()
         {
-            RecAudio.Record().Wait();
+            await RecAudio.Record();
             Thread.Sleep(3000);
-            RecAudio.StopRecording().Wait();
+            await RecAudio.StopRecording();
 
             string requestUri = "https://eastus.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1?language=en-US";
             string contentType = @"audio/wav; codec=""audio/pcm""; samplerate=16000";
@@ -80,8 +81,7 @@ namespace FredServer
                 Console.WriteLine(ex.Message);
                 Console.ReadLine();
             }
-
-            return fredHears;
+                        
         }// Hear
 
         public static string FredHears()

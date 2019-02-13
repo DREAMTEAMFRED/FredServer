@@ -21,8 +21,9 @@ namespace FredServer
         public static async Task AskFred()
         {            
             TTS.Speak("I am listening...").Wait();
-                        
-            voice = STT.Hears().ToLower();                       
+
+            await STT.Hears();
+            voice = STT.FredHears().ToLower();                   
 
             if (voice == "nothing recorded")
             {
@@ -30,7 +31,7 @@ namespace FredServer
             }
             else
             {
-                cmd = FredKB.Query(voice);
+                cmd = FredKB.Query(voice); // checks the KB for stored answers
             }
 
             cmd = cmd.Replace("\"", "");
@@ -60,7 +61,7 @@ namespace FredServer
             //string question = ProgramRestSTT.text;
             if (voice.Equals("nothing recorded"))
             {
-                TTS.Speak("I didn't hear a question...").Wait();
+                await TTS.Speak("I didn't hear a question...");
             }
             else
             {
@@ -104,7 +105,7 @@ namespace FredServer
             }
             else
             {
-                TTS.Speak("please rephrase your question").Wait();
+                await TTS.Speak("please rephrase your question");
             }
         }
 

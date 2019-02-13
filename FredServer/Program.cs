@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using CamTheGeek.GpioDotNet;
 using ManagedBass;
 
+
 namespace FredServer
 {
     class Program
@@ -77,7 +78,7 @@ namespace FredServer
                                 {
                                     await TTS.Speak(cmd[1]);
                                     Console.WriteLine("FRED says " + cmd[1]);
-                                    FredSays();                                                                         
+                                    //FredSays();                                                                         
                                     break;
                                 }
                             case "vision":
@@ -85,11 +86,13 @@ namespace FredServer
                                     await FredVision.GetVision("describe");
                                     await TTS.Speak(FredVision.FredSees());
                                     Console.WriteLine("FRED sees " + FredVision.FredSees());
-                                    FredSays();                                    
+                                    //FredSays();                                    
                                     break;
                                 }
                             case "auto":
                                 {
+                                    //TTS.Speak("I am listening...").Wait();
+
                                     await FredQnA.AskFred();
 
                                     break;
@@ -120,17 +123,6 @@ namespace FredServer
             }
 
         } // main   
-
-        public static void FredSays()
-        {                      
-            var stream = Bass.CreateStream("fredSays.wav", 0, 0, BassFlags.AutoFree);
-                
-            if (stream != 0)
-                Bass.ChannelPlay(stream); // Play the stream
-
-            // Error creating the stream
-            else Console.WriteLine("Error: {0}!", Bass.LastError);                            
-        }
 
         public static string GetIpAddress()
         {

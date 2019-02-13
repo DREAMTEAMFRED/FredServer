@@ -4,11 +4,12 @@ using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using ManagedBass;
 
 namespace FredServer
 {
     class TTS
-    {
+    {        
         public static async Task Speak(string text)
         {
             string accessToken;
@@ -67,7 +68,19 @@ namespace FredServer
                     }
                 }
             }
+            FredSays();
         }// speak
+
+        public static void FredSays()
+        {            
+            var stream = Bass.CreateStream("fredSays.wav", 0, 0, BassFlags.AutoFree);
+
+            if (stream != 0)
+                Bass.ChannelPlay(stream); // Play the stream
+
+            // Error creating the stream
+            else Console.WriteLine("Error: {0}!", Bass.LastError);
+        }
 
     }
 }
