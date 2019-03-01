@@ -1,19 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using CamTheGeek.GpioDotNet;
+using FredQnA;
 using ManagedBass;
-
+using NetCoreAudio;
+using SpeakerRecognition;
+using TcpRaspServer.Utility;
+using UpdatedKB;
 
 namespace FredServer
 {
     class Program
     {
         private List<string> IPs = new List<string>();
+        static Player player = new Player();
 
         public static async Task Main()
         {
@@ -32,7 +38,7 @@ namespace FredServer
                 server.Start();
 
                 // Buffer for reading data
-                Byte[] bytes = new Byte[256];
+                Byte[] bytes = new Byte[1024];
                 String data = null;
 
                 // Enter the listening loop.
@@ -42,22 +48,19 @@ namespace FredServer
 
                     TcpClient client = server.AcceptTcpClient();
                     Console.WriteLine("Connected!");
-
-                    data = null;
                     
                     NetworkStream stream = client.GetStream();
 
-                    int i;
+                    int i = stream.Read(bytes, 0, bytes.Length);
 
                     // Loop to receive all the data sent by the client.
-                    while ((i = stream.Read(bytes, 0, bytes.Length)) != 0)
-                    {
+
                         // Translate data bytes to a ASCII string.
                         data = System.Text.Encoding.ASCII.GetString(bytes, 0, i);
                         Console.WriteLine("Received: {0}", data);
                                                
                         // translate data into commands
-                        string[] cmd = data.Split('-');
+                        string[] cmd = data.Split('*');
                         switch (cmd[0])
                         {
                             case "light":
@@ -76,7 +79,7 @@ namespace FredServer
                                 }
                             case "TTS":
                                 {
-                                    await TTS.Speak(cmd[1]);
+                                    await AskFred.tts.TextToWords(cmd[1]);
                                     Console.WriteLine("FRED says " + cmd[1]);
                                     //FredSays();                                                                         
                                     break;
@@ -84,32 +87,120 @@ namespace FredServer
                             case "vision":
                                 {
                                     await FredVision.GetVision("describe");
-                                    await TTS.Speak(FredVision.FredSees());
+                                    await AskFred.tts.TextToWords(FredVision.FredSees());
                                     Console.WriteLine("FRED sees " + FredVision.FredSees());
                                     //FredSays();                                    
                                     break;
                                 }
-                            case "auto":
+                            case "Record":
+                                {
+                                    VarHolder.LinuxRecTime = "";
+                                    Console.WriteLine(cmd[0]);
+                                    player.Record().Wait();
+                                    break;
+                                }
+                            case "PlayB":
+                                {
+                                    string path = Directory.GetCurrentDirectory();
+                                    if (path.Contains("\\"))
+                                    {
+                                        path += "\\record.wav";
+                                    }
+                                    else
+                                    {
+                                        path += "/record.wav";
+                                    }
+                                    Console.WriteLine(cmd[0]);
+                                    player.Play(path).Wait();
+                                    break;
+                                }
+                            case "StopR":
+                                {
+                                    VarHolder.LinuxRecTime = "";
+                                    player.StopRecording().Wait();
+                                    break;
+                                }
+                            case "FredSpy":
+                                {
+                                    string path = Directory.GetCurrentDirectory();
+                                    if (path.Contains("\\"))
+                                    {
+                                        path += "\\record.wav";
+                                    }
+                                    else
+                                    {
+                                        path += "/record.wav";
+                                    }
+                                    Byte[] audio = File.ReadAllBytes(path);
+                                    stream.WriteAsync(audio, 0, audio.Length).Wait();
+                                    break;
+                                }
+                            case "Reco1":
+                                {
+                                    VarHolder.LinuxRecTime = "-d 10";
+                                    VoiceSignature.RecVoiceOne(cmd[1]).Wait();
+                                    break;
+                                }
+                            case "Reco2":
+                                {
+                                    VarHolder.LinuxRecTime = "-d 10";
+                                    VoiceSignature.RecVoiceTwo().Wait();
+                                    break;
+                                }
+                            case "ConfEnroll":
+                                {
+                                    VoiceSignature.ConfirmEnroll();
+                                    break;
+                                }
+                            case "CancEnroll":
+                                {
+                                    VoiceSignature.CancelEnroll();
+                                    break;
+                                }
+                            case "GetEnroll":
+                                {
+                                    string path = Directory.GetCurrentDirectory();
+                                    if (path.Contains("\\"))
+                                    {
+                                        path += "\\speaker_recog.txt";
+                                    }
+                                    else
+                                    {
+                                        path += "/speaker_recog.txt";
+                                    }
+                                    Byte[] text = File.ReadAllBytes(path);
+                                    stream.WriteAsync(text, 0, text.Length).Wait();
+                                    break;
+                                }
+                            case "DelProfile":
+                                {
+                                    string profileId = cmd[1];
+                                    VoiceSignature.DeleteProfile(profileId).Wait();
+                                    break;
+                                }
+                            case "AskFred": // Ask Fred
                                 {
                                     //TTS.Speak("I am listening...").Wait();
 
-                                    await FredQnA.AskFred();
-
+                                    VarHolder.LinuxRecTime = "-d 5";
+                                    AskFred.Inquiry().Wait();
                                     break;
                                 }
-                        }                       
-       
-                        // Process the data sent by the client.
-                        //data = data.ToUpper();
-
-                        //byte[] msg = System.Text.Encoding.ASCII.GetBytes(data);
-
-                        // Send back a response.
-                        //stream.Write(msg, 0, msg.Length);
-                        //Console.WriteLine("Sent: {0}", data);
-
-                    } // while
-
+                        case "UpdateKB": // Update KB
+                            {
+                                string trial = cmd[1];
+                                string[] splitTrial = trial.Split(";");
+                                string[] question = new string[splitTrial.Length];
+                                string[] answer = new string[splitTrial.Length];
+                                for (int j = 0; j < splitTrial.Length; j++)
+                                {
+                                    question[j] = splitTrial[j].Split(":")[0].Replace("'", "");
+                                    answer[j] = splitTrial[j].Split(":")[1].Replace("'", "");
+                                }
+                                UpdateFredKB.UpdateKB(question, answer);
+                                break;
+                            }
+                    }                       
                 } // listening loop
             }
             catch (SocketException e)

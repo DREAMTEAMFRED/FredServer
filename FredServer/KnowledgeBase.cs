@@ -4,21 +4,21 @@ using System.Json;
 using System.Net.Http;
 using System.Text;
 
-namespace FredServer
+namespace FredKB
 {
-    class FredKB
+    class KnowledgeBase
     {
-        public static string Query(string quest)
+        public static string FredKB(string quest)
         {
             // Represents the various elements used to create HTTP request URIs
             // for QnA Maker operations.
             // From Publish Page: HOST
             // Example: https://YOUR-RESOURCE-NAME.azurewebsites.net/qnamaker
             string host = "https://qnafred.azurewebsites.net/qnamaker";
-            string kb = Environment.GetEnvironmentVariable("kb_Id", EnvironmentVariableTarget.User);
+            string kb = "85e578a7-bf44-4f12-b46e-26efa40b1653"; // Environment.GetEnvironmentVariable("kb_Id", EnvironmentVariableTarget.User);
             // Authorization endpoint key
             // From Publish Page
-            string endpoint_key = Environment.GetEnvironmentVariable("azure_KB_key", EnvironmentVariableTarget.User);
+            string endpoint_key = "9ed8e55e-e00b-4f2e-a4cf-87098d19c2a6"; // Environment.GetEnvironmentVariable("azure_KB_key", EnvironmentVariableTarget.User);
 
             // Management APIs postpend the version to the route
             // From Publish Page, value after POST
@@ -67,7 +67,7 @@ namespace FredServer
                         obj.TryGetValue("answer", out JsonValue result);
                         obj.TryGetValue("score", out JsonValue score);
                         rating = Convert.ToDouble(score.ToString());
-                        if (rating > 90.0)
+                        if(rating > 90.0)
                         {
                             answer = result.ToString();
                         }

@@ -1,4 +1,5 @@
-﻿using NetCoreAudio.Interfaces;
+﻿using NAudio.Wave;
+using NetCoreAudio.Interfaces;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -44,9 +45,10 @@ namespace NetCoreAudio.Players
 
         public Task Record()
         {
+            //bool hmmm = guess;
             var sb = new StringBuilder();
             mciSendString("open new Type waveaudio Alias recsound", sb, 0, IntPtr.Zero);
-            mciSendString("set recsound time format ms bitspersample 16 channels 2 samplespersec 16000 bytespersec 128000 alignment 4", sb, 0, IntPtr.Zero);
+            mciSendString("set recsound time format ms bitspersample 16 channels 1 samplespersec 16000 bytespersec 128000 alignment 4", sb, 0, IntPtr.Zero);
             mciSendString("record recsound", sb, 0, IntPtr.Zero);
 
             return Task.CompletedTask;
@@ -54,13 +56,28 @@ namespace NetCoreAudio.Players
 
         public Task StopRecording()
         {
-
             string path = Directory.GetCurrentDirectory();
             string fullPath = path + "\\record.wav";
             var sb = new StringBuilder();
             mciSendString("save recsound " + fullPath, sb, 0, IntPtr.Zero);
             mciSendString("close recsound ", sb, 0, IntPtr.Zero);
+
+            byte[] audio = File.ReadAllBytes(@"record.wav");
+            ConvertWaveFormat(audio);
+
             return Task.CompletedTask;
+        }
+
+        public static void ConvertWaveFormat(byte[] inArray)
+        {
+            using (var mem = new MemoryStream(inArray))
+            using (var reader = new WaveFileReader(mem))
+            using (var converter = WaveFormatConversionStream.CreatePcmStream(reader))
+            using (var upsampler = new WaveFormatConversionStream(new WaveFormat(16000, 16, 1), converter))
+            {
+                // todo: without saving to file using MemoryStream or similar
+                WaveFileWriter.CreateWaveFile(@"record.wav", upsampler);
+            }
         }
 
         public Task Pause()
@@ -94,11 +111,18 @@ namespace NetCoreAudio.Players
         {
             if (Playing)
             {
+                ExecuteMsiCommand("Stop All");
+                ExecuteMsiCommand("Close All");
                 ExecuteMsiCommand("Stop " + myFilename);
                 Playing = false;
                 Paused = false;
                 _playbackTimer.Stop();
                 _playStopwatch.Stop();
+            }
+            else
+            {
+                ExecuteMsiCommand("Stop All");
+                ExecuteMsiCommand("Close All");
             }
             return Task.CompletedTask;
         }

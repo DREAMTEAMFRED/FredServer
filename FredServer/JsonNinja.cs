@@ -1,13 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
+using System.Threading.Tasks;
 
-namespace FredServer
+namespace MovieMarvel
 {
     public class JsonNinja
     {
         List<string> names = new List<string>();
         List<string> vals = new List<string>();
+
+        public List<string> GetVals()
+        {
+            return vals;
+        }
 
         public JsonNinja(string data)
         {
@@ -18,28 +24,28 @@ namespace FredServer
             int startPos = 0;
             int endPos = 0;
             int endPosVal = 0;
-            bool startFound = true;
-            bool endFound = true;
+            bool startFound = false;
+            bool endFound = false;
             bool collection = false;
             int collectionCounter = 0;
 
             int k = 0;
-            while (k < data.Length)
+            while(k < data.Length)
             {
                 char test = data[k];
-                if (data[k] == '"' && startFound == true)
+                if (data[k] == '"' && startFound == false)
                 {
-                    startFound = false;
+                    startFound = true;
                     startPos = k;
                 }
-                if (data[k] == ':' && endFound == true)
+                if(data[k] == ':' && endFound == false)
                 {
                     if (data[k + 1] == '[')
                     {
                         collection = true;
                     }
                     endPos = k;
-                    endFound = false;
+                    endFound = true;
 
                     string nameCut = data.Substring(startPos, endPos - startPos);
                     names.Add(nameCut);
@@ -50,15 +56,15 @@ namespace FredServer
                     if (data[k] == '[')
                         collectionCounter++;
 
-                    if (data[k] == ']')
+                    if(data[k] == ']')
                     {
-                        if (collectionCounter == 1)
+                        if(collectionCounter == 1)
                         {
                             endPosVal = k;
                             string valCut = data.Substring(endPos + 1, endPosVal - (endPos));
                             vals.Add(valCut);
-                            startFound = true;
-                            endFound = true;
+                            startFound = false;
+                            endFound = false;
                             collectionCounter = 0;
                             collection = false;
                         }
@@ -68,13 +74,24 @@ namespace FredServer
                         }
                     }
                 }
-                else if ((data[k] == ',' && data[k + 1] == '"' && startFound == false) || k == data.Length - 1)
+                else if ((data[k] == ',' && data[k + 1] == '"' && startFound == true) || k == data.Length - 1)
                 {
-                    endPosVal = k;
-                    string valCut = data.Substring(endPos + 1, endPosVal - (endPos + 1));
-                    vals.Add(valCut);
-                    startFound = true;
-                    endFound = true;
+                    if(k == data.Length - 1)
+                    {
+                        endPosVal = k;
+                        string valCut = data.Substring(endPos + 1, endPosVal - (endPos));
+                        vals.Add(valCut);
+                        startFound = false;
+                        endFound = false;
+                    }
+                    else
+                    {
+                        endPosVal = k;
+                        string valCut = data.Substring(endPos + 1, endPosVal - (endPos + 1));
+                        vals.Add(valCut);
+                        startFound = false;
+                        endFound = false;
+                    }
                 }
                 k++;
             }
@@ -85,35 +102,24 @@ namespace FredServer
             return names;
         }
 
-        public List<string> GetVals()
+        public List<string> GetPosters(string name)
         {
-            return vals;
-        }
-
-        public List<string> GetInfoList(string term)
-        {
-            List<string> values = new List<string>();
-            for (int i = 0; i < names.Count; i++)
-            {
-                if (term == names[i])
-                {
-                    values.Add(vals[i].Substring(1, vals[i].Length - 2));
-                }
-            }
-            return values;
-        }
-
-        public string GetInfo(string name)
-        {
-
-            string value = "";
+            List<string> value = new List<string>();
             for (int i = 0; i < names.Count; i++)
             {
                 if (name == names[i])
                 {
-                    value = vals[i];
+                    if(vals[i] != "null")
+                    {
+                        value.Add(vals[i].Substring(3, vals[i].Length - 4));
+                    }
+                    else
+                    {
+                        value.Add("");
+                    }
                 }
             }
+            // trims ""
             return value;
         }
 
@@ -124,10 +130,33 @@ namespace FredServer
             {
                 if (name == names[i])
                 {
-                    value.Add(vals[i]);
+                    if(vals[i] != "null")
+                        value.Add(vals[i]);
                 }
             }
+            // trims ""
+            return value;
+        }
+
+        public List<string> GetDetails(string key)
+        {
+            List<string> value = new List<string>();
+            for (int i = 0; i < names.Count; i++)
+            {
+                if (key == names[i])
+                {
+                    if (vals[i] == "nul" || vals[i] == "null" || vals[i] == "")
+                    {
+                        value.Add("null");
+                    }
+                    else
+                    {
+                        value.Add(vals[i].Substring(1, vals[i].Length - 2));
+                    }
+                }
+            }
+            // trims ""
             return value;
         }
     }// end class
-}
+}// end namespace

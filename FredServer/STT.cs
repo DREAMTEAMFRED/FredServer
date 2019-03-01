@@ -13,11 +13,11 @@ namespace FredServer
     {
         private static string fredHears = "";
 
-        public static async Task Hears()
+        public async Task Hears()
         {
-            await RecAudio.Record();
+            await RecordAudio.RecordAudio.Record();
             Thread.Sleep(3000);
-            await RecAudio.StopRecording();
+            await RecordAudio.RecordAudio.StopRecording();
 
             string requestUri = "https://eastus.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1?language=en-US";
             string contentType = @"audio/wav; codec=""audio/pcm""; samplerate=16000";

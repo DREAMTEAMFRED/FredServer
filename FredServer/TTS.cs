@@ -10,7 +10,7 @@ namespace FredServer
 {
     class TTS
     {        
-        public static async Task Speak(string text)
+        public async Task Speak(string text)
         {
             string accessToken;
 

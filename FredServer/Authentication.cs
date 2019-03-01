@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 
-namespace FredServer
+namespace TextToSPeechApp
 {
     class Authentication
     {
@@ -35,6 +33,7 @@ namespace FredServer
                 var result = await client.PostAsync(uriBuilder.Uri.AbsoluteUri, null).ConfigureAwait(false);
                 return await result.Content.ReadAsStringAsync().ConfigureAwait(false);
             }
+
         }
     }
 }
