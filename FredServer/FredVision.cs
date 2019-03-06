@@ -8,6 +8,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Json;
+using MovieMarvel;
+using TextToSPeechApp;
 
 namespace FredServer
 {
@@ -15,15 +17,15 @@ namespace FredServer
     {
         private static HttpClient client = new HttpClient();
         private static string data = null;
-        private JsonNinja jNinja;               
-
+        private static JsonNinja jNinja;
+        static TextToSpeech tts = new TextToSpeech();
         private static void SetData(string _data) { data = _data; }
         public string GetData() { return data; }
 
         // GetPerson()
-        private List<string> faces = new List<string>();
-        private List<string> names = new List<string>();
-        public void ClearNames() { this.names.Clear(); }
+        private static List<string> faces = new List<string>();
+        private static List<string> names = new List<string>();
+        //public void ClearNames() { this.names.Clear(); }
         public List<string> GetNames() { return names; }
 
         private string name;
@@ -109,22 +111,22 @@ namespace FredServer
             return fredSees;
         }
 
-        public string FredReads()
+        public static string FredReads()
         {
             List<string> tempWords = new List<string>();
             List<string> words = new List<string>();
 
             jNinja = new JsonNinja(data);
-            string filterCollection = jNinja.GetInfo("\"regions\"");
+            string filterCollection = jNinja.GetDetails("\"regions\"")[0]; // jNinja.GetInfo("\"regions\"");
             jNinja = new JsonNinja(filterCollection);
-            filterCollection = jNinja.GetInfo("\"lines\"");
+            filterCollection = jNinja.GetDetails("\"lines\"")[0];  // jNinja.GetInfo("\"lines\"");
             jNinja = new JsonNinja(filterCollection);
-            List<string> filterCollections = jNinja.GetInfoList("\"words\"");
+            List<string> filterCollections = jNinja.GetDetails("\"words\"");  // jNinja.GetInfoList("\"words\"");
 
             for (int i = 0; i < filterCollections.Count; i++)
             {
                 jNinja = new JsonNinja(filterCollections[i]);
-                tempWords = jNinja.GetInfoList("\"text\"");
+                tempWords = jNinja.GetDetails("\"text\""); // jNinja.GetInfoList("\"text\"");
                 foreach (string word in tempWords)
                 {
                     words.Add(word);
@@ -136,7 +138,7 @@ namespace FredServer
             return fredReads;
         }
 
-        public async Task DetectFace()
+        public static async Task DetectFace()
         {
             client.DefaultRequestHeaders.Clear();
             List<string> faceIDs = new List<string>();
@@ -194,14 +196,14 @@ namespace FredServer
                 }
 
                 jNinja = new JsonNinja(data);
-                List<string> filterCollections = jNinja.GetInfoList("\"candidates\"");
+                List<string> filterCollections = jNinja.GetDetails("\"candidates\""); // jNinja.GetInfoList("\"candidates\"");
                 for (int i = 0; i < filterCollections.Count; i++)
                 {
                     jNinja = new JsonNinja(filterCollections[i]);
                     if (filterCollections[i] == "")
                         names.Add("dont recognize");
                     else
-                        faces.Add(jNinja.GetInfo("\"personId\""));
+                        faces.Add(jNinja.GetDetails("\"personId\"")[0]); // jNinja.GetInfo("\"personId\"")
                 }
 
 
@@ -219,7 +221,7 @@ namespace FredServer
 
         }//DectectFace
 
-        public async Task GetPerson(string personID)
+        public static async Task GetPerson(string personID)
         {
             client.DefaultRequestHeaders.Clear();
             string personsName;
@@ -259,6 +261,47 @@ namespace FredServer
             }
 
         }// GetPerson()
-              
+
+        public static async void GreetPerson()
+        {
+            await GetVision("detect");
+            await DetectFace();
+
+            if (names.Count > 1)
+            {
+                string sayNames = "";
+                foreach (string name in names)
+                {
+                    sayNames += name + " and ";
+                }
+                sayNames = sayNames.Substring(0, sayNames.Length - 5);
+                tts.TextToWords("TTS-Hello " + sayNames + "! How are you today?").Wait();
+            }
+            else
+            {
+                switch (names[0])
+                {
+                    case "no face":
+                        {
+                            tts.TextToWords("TTS-I dont see any faces to detect").Wait();
+                            break;
+                        }
+                    case "dont recgonize":
+                        {
+                            tts.TextToWords("TTS-I dont recgonize any faces?").Wait();
+                            break;
+                        }
+                    default:
+                        {
+                            string[] greeting = { "How are you today?", "whats up?", "What, you never heard a toy car talk before?" };
+                            Random randNum = new Random();
+                            randNum.Next(3);
+                            tts.TextToWords("TTS-Hello " + names[0] + "! How are you today?").Wait();
+                            break;
+                        }
+                }
+            }
+            names.Clear();
+        }
     }
 }

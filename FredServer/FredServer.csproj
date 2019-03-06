@@ -7,7 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="STT.cs" />
+    <Compile Remove="TTS.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="ManagedBass" Version="2.0.4" />
+    <PackageReference Include="NAudio" Version="1.8.5" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
     <PackageReference Include="System.Json" Version="4.5.0" />    
   </ItemGroup>
 
