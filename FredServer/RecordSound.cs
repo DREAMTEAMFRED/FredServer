@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace RecordAudio
 {
-    public static class RecordAudio
+    public class RecordSound
     {
         /*[DllImport("winmm.dll", EntryPoint = "mciSendStringA", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
         private static extern int mciSendString(string lpstrCommand, string lpstrReturnString, int uReturnLength, int hwndCallback);*/

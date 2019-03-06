@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using MovieMarvel;
 using System.Threading;
 using System.Threading.Tasks;
+using RecordAudio;
 
 namespace RestSTT
 {
@@ -12,7 +13,7 @@ namespace RestSTT
     {
         public static string text = "";
         public static int noSpeech = 0;
-        public async Task WordsToText()
+        public async void WordsToText()
         {
             /*if ((args.Length < 2) || (string.IsNullOrWhiteSpace(args[0])))
             {
@@ -22,9 +23,9 @@ namespace RestSTT
                 return;
             }*/
 
-            await RecordAudio.RecordAudio.Record();
+            await RecordSound.Record();
             Thread.Sleep(3000); // allows 5secs of recording
-            await RecordAudio.RecordAudio.StopRecording();
+            await RecordSound.StopRecording();
 
 
             // Note: Sign up at https://azure.microsoft.com/en-us/try/cognitive-services/ to get a subscription key.  

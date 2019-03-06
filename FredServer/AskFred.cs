@@ -28,14 +28,13 @@ namespace FredQnA
         public static async Task Inquiry()
         {
             wolframText = ""; // reinitialize wolframText tio empty
-            NetCoreSample.Audio($"I_am_listening.wav");
+            NetCoreSample.Audio(@"listening_beep.wav");
             //await tts.TextToWords("I am listening...");
 
-            //stt.Hears().Wait();
-            speech.WordsToText().Wait();
+            //STT.Hears();
+            speech.WordsToText();
 
-            string voice = SpeechToText.text.ToLower();
-
+            string voice =  SpeechToText.text.ToLower(); // STT.FredHears();
             if(voice.Contains("what") && voice.Contains("see"))
             {
                 //cmd = "Fred Sees";
@@ -115,7 +114,7 @@ namespace FredQnA
         {
             //Console.WriteLine("Please ask your question");
             //await speech.SpeechToText();
-            string question = SpeechToText.text;
+            string question = SpeechToText.text; // STT.FredHears();
             if (question.Equals("Nothing recorded"))
             {
                 NetCoreSample.Audio($"no_question.wav");
