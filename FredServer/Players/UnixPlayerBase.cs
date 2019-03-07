@@ -84,10 +84,13 @@ namespace NetCoreAudio.Players
                 _process = null;
             }*/
 
-            var tempProcess = StartBashProcess("pkill aplay");
-            Playing = false;
-            Paused = false;
-
+            if(Playing)
+            {
+                var tempProcess = StartBashProcess("pkill aplay");
+                Playing = false;
+                Paused = false;
+            }
+            
             return Task.CompletedTask;
         }
 
