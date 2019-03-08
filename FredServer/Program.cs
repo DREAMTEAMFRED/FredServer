@@ -55,137 +55,137 @@ namespace FredServer
 
                     // Loop to receive all the data sent by the client.
 
-                        // Translate data bytes to a ASCII string.
-                        data = System.Text.Encoding.ASCII.GetString(bytes, 0, i);
-                        Console.WriteLine("Received: {0}", data);
+                    // Translate data bytes to a ASCII string.
+                    data = System.Text.Encoding.ASCII.GetString(bytes, 0, i);
+                    Console.WriteLine("Received: {0}", data);
                                                
-                        // translate data into commands
-                        string[] cmd = data.Split('*');
-                        switch (cmd[0])
-                        {
-                            case "light":
-                                {                                    
-                                    if (cmd[1] == "on")
-                                    {
-                                        light.Value = PinValue.High;
-                                        Console.WriteLine("Light On");
-                                    }
-                                    if (cmd[1] == "off")
-                                    {
-                                        light.Value = PinValue.Low;
-                                        Console.WriteLine("Light Off");                                                                                                                        
-                                    }
-                                    break;
-                                }
-                            case "TTS":
+                    // translate data into commands
+                    string[] cmd = data.Split('*');
+                    switch (cmd[0])
+                    {
+                        case "light":
+                            {                                    
+                                if (cmd[1] == "on")
                                 {
-                                    await AskFred.tts.TextToWords(cmd[1]);
-                                    Console.WriteLine("FRED says " + cmd[1]);
-                                    //FredSays();                                                                         
-                                    break;
+                                    light.Value = PinValue.High;
+                                    Console.WriteLine("Light On");
                                 }
-                            case "vision":
+                                if (cmd[1] == "off")
                                 {
-                                    await FredVision.GetVision("describe");
-                                    await AskFred.tts.TextToWords(FredVision.FredSees());
-                                    Console.WriteLine("FRED sees " + FredVision.FredSees());
-                                    //FredSays();                                    
-                                    break;
+                                    light.Value = PinValue.Low;
+                                    Console.WriteLine("Light Off");                                                                                                                        
                                 }
-                            case "Record":
+                                break;
+                            }
+                        case "TTS":
+                            {
+                                await AskFred.tts.TextToWords(cmd[1]);
+                                Console.WriteLine("FRED says " + cmd[1]);
+                                //FredSays();                                                                         
+                                break;
+                            }
+                        case "vision":
+                            {
+                                await FredVision.GetVision("describe");
+                                await AskFred.tts.TextToWords(FredVision.FredSees());
+                                Console.WriteLine("FRED sees " + FredVision.FredSees());
+                                //FredSays();                                    
+                                break;
+                            }
+                        case "Record":
+                            {
+                                VarHolder.LinuxRecTime = "";
+                                Console.WriteLine(cmd[0]);
+                                player.Record().Wait();
+                                break;
+                            }
+                        case "PlayB":
+                            {
+                                string path = Directory.GetCurrentDirectory();
+                                if (path.Contains("\\"))
                                 {
-                                    VarHolder.LinuxRecTime = "";
-                                    Console.WriteLine(cmd[0]);
-                                    player.Record().Wait();
-                                    break;
+                                    path += "\\record.wav";
                                 }
-                            case "PlayB":
+                                else
                                 {
-                                    string path = Directory.GetCurrentDirectory();
-                                    if (path.Contains("\\"))
-                                    {
-                                        path += "\\record.wav";
-                                    }
-                                    else
-                                    {
-                                        path += "/record.wav";
-                                    }
-                                    Console.WriteLine(cmd[0]);
-                                    player.Play(path).Wait();
-                                    break;
+                                    path += "/record.wav";
                                 }
-                            case "StopR":
+                                Console.WriteLine(cmd[0]);
+                                player.Play(path).Wait();
+                                break;
+                            }
+                        case "StopR":
+                            {
+                                VarHolder.LinuxRecTime = "";
+                                player.StopRecording().Wait();
+                                break;
+                            }
+                        case "FredSpy":
+                            {
+                                string path = Directory.GetCurrentDirectory();
+                                if (path.Contains("\\"))
                                 {
-                                    VarHolder.LinuxRecTime = "";
-                                    player.StopRecording().Wait();
-                                    break;
+                                    path += "\\record.wav";
                                 }
-                            case "FredSpy":
+                                else
                                 {
-                                    string path = Directory.GetCurrentDirectory();
-                                    if (path.Contains("\\"))
-                                    {
-                                        path += "\\record.wav";
-                                    }
-                                    else
-                                    {
-                                        path += "/record.wav";
-                                    }
-                                    Byte[] audio = File.ReadAllBytes(path);
-                                    stream.WriteAsync(audio, 0, audio.Length).Wait();
-                                    break;
+                                    path += "/record.wav";
                                 }
-                            case "Reco1":
+                                Byte[] audio = File.ReadAllBytes(path);
+                                stream.WriteAsync(audio, 0, audio.Length).Wait();
+                                break;
+                            }
+                        case "Reco1":
+                            {
+                                VarHolder.LinuxRecTime = "-d 10";
+                                VoiceSignature.RecVoiceOne(cmd[1]).Wait();
+                                break;
+                            }
+                        case "Reco2":
+                            {
+                                VarHolder.LinuxRecTime = "-d 10";
+                                VoiceSignature.RecVoiceTwo().Wait();
+                                break;
+                            }
+                        case "ConfEnroll":
+                            {
+                                VoiceSignature.ConfirmEnroll();
+                                break;
+                            }
+                        case "CancEnroll":
+                            {
+                                VoiceSignature.CancelEnroll();
+                                break;
+                            }
+                        case "GetEnroll":
+                            {
+                                string path = Directory.GetCurrentDirectory();
+                                if (path.Contains("\\"))
                                 {
-                                    VarHolder.LinuxRecTime = "-d 10";
-                                    VoiceSignature.RecVoiceOne(cmd[1]).Wait();
-                                    break;
+                                    path += "\\speaker_recog.txt";
                                 }
-                            case "Reco2":
+                                else
                                 {
-                                    VarHolder.LinuxRecTime = "-d 10";
-                                    VoiceSignature.RecVoiceTwo().Wait();
-                                    break;
+                                    path += "/speaker_recog.txt";
                                 }
-                            case "ConfEnroll":
-                                {
-                                    VoiceSignature.ConfirmEnroll();
-                                    break;
-                                }
-                            case "CancEnroll":
-                                {
-                                    VoiceSignature.CancelEnroll();
-                                    break;
-                                }
-                            case "GetEnroll":
-                                {
-                                    string path = Directory.GetCurrentDirectory();
-                                    if (path.Contains("\\"))
-                                    {
-                                        path += "\\speaker_recog.txt";
-                                    }
-                                    else
-                                    {
-                                        path += "/speaker_recog.txt";
-                                    }
-                                    Byte[] text = File.ReadAllBytes(path);
-                                    stream.WriteAsync(text, 0, text.Length).Wait();
-                                    break;
-                                }
-                            case "DelProfile":
-                                {
-                                    string profileId = cmd[1];
-                                    VoiceSignature.DeleteProfile(profileId).Wait();
-                                    break;
-                                }
-                            case "AskFred": // Ask Fred
-                                {
-                                    //TTS.Speak("I am listening...").Wait();
+                                Byte[] text = File.ReadAllBytes(path);
+                                stream.WriteAsync(text, 0, text.Length).Wait();
+                                break;
+                            }
+                        case "DelProfile":
+                            {
+                                string profileId = cmd[1];
+                                VoiceSignature.DeleteProfile(profileId).Wait();
+                                break;
+                            }
+                        case "AskFred": // Ask Fred
+                            {
+                                //TTS.Speak("I am listening...").Wait();
 
-                                    VarHolder.LinuxRecTime = "-d 5";
-                                    AskFred.Inquiry().Wait();
-                                    break;
-                                }
+                                VarHolder.LinuxRecTime = "-d 5";
+                                AskFred.Inquiry().Wait();
+                                break;
+                            }
                         case "UpdateKB": // Update KB
                             {
                                 string trial = cmd[1];
