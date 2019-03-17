@@ -101,5 +101,33 @@ namespace SpeakerRecognition
             }
             sw.Close();
         }
+
+        public static void UpdateProfile(string updateInfo)
+        {
+            List<string> profiles = new List<string>();
+            StreamReader sr = new StreamReader(@"speaker_recog.txt");
+            while (!sr.EndOfStream) // extracts info line by line from txt file and puts it in List
+            {
+                profiles.Add(sr.ReadLine());
+            }
+            sr.Close();
+
+            string[] info = updateInfo.Split(';');
+            for (int i = 0; i < info.Length; i++)
+            {
+                string[] infoSplit = info[i].Split(':');
+                profiles.RemoveAt(Int32.Parse(infoSplit[0]));
+                string updateEntry = infoSplit[1] + "," + infoSplit[2] + "," + infoSplit[3];
+                profiles.Insert(Int32.Parse(infoSplit[0]), updateEntry);
+            }
+
+            StreamWriter sw = new StreamWriter(@"speaker_recog.txt", false); // ensures new entry overwrites items in old txt file
+
+            for (int i = 0; i < profiles.Count; i++) // adds the info line by line back into txt file
+            {
+                sw.WriteLine(profiles[i]);
+            }
+            sw.Close();
+        }
     }
 }

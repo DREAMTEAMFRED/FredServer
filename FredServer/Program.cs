@@ -200,6 +200,11 @@ namespace FredServer
                                 UpdateFredKB.UpdateKB(question, answer);
                                 break;
                             }
+                        case "UpdateProfileInfo":
+                            {
+                                VoiceSignature.UpdateProfile(cmd[1]);
+                                break;
+                            }
                     }                       
                 } // listening loop
             }
